@@ -79,6 +79,7 @@
 	        }
 		});
 	$('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
+  $('canvas').first().css('border-style', 'dashed');
 	};
 /*========================================================================*/
   	function draw(context, path, color='black', lineWidth=10){
@@ -125,7 +126,9 @@
   	}
 /*========================================================================*/
   	function addToUndone(path){
-    	undone.push(transformSize(path));
+    	if(typeof path === 'undefined')
+        return;
+      undone.push(transformSize(path));
     	$("#undone").append("<div style='border-style: solid'><canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
     	draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
   	}
@@ -140,18 +143,15 @@
   	}
 /*========================================================================*/
   	function addToPaths(path){
+      if(typeof path === 'undefined')
+        return;
     	paths.push(unTransformSize(path));
   	}
 /*========================================================================*/
   	function toggleWritingMode(){
   		var writtingMessage;
     	writingMode = !writingMode;
-    	if (writingMode){
-    		writtingMessage = "Writing Mode: ON";
-    	} else{
-    		writtingMessage = "Writing Mode: OFF";
-    	}
-    	$('writingModeToggle').html(writtingMessage);
+    	$('#writingModeToggle').html("Writing Mode: " + (writingMode ? "ON" : "OFF"));
   	}
 /*========================================================================*/
   	function undo(){
