@@ -18,15 +18,16 @@
 
     var PATH_TIME_MARGIN = 1000;
     function updateWritingProgress(saveStatus){
-      var color;
+      var color, message;
       if(saveStatus){
         color = "green";
+        message = "Saved";
       } else {
-        color = "red";
+        color = "yellow";
+        message = "Writing";
       }
-
-      
       $("#writingProgress").css("background-color", color);
+      $("#writingProgress").html(message);
     }
 
     function toggleHistory(){
@@ -161,6 +162,21 @@
     );
     draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
   }
+
+  function unTransformSize(path){
+    var pathChanged = path;
+    for(var i = 0; i < path.pts.length; i++){
+      pathChanged.pts[i][0] = pathChanged.pts[i][0] / THUMBNAIL_WIDTH_RATIO;
+      pathChanged.pts[i][1] = pathChanged.pts[i][1] / THUMBNAIL_HEIGHT_RATIO;
+    }
+    return pathChanged;
+  }
+
+  function addToPaths(path){
+    paths.push(unTransformSize(path));
+  }
+
+
   function toggleWritingMode(){
     writingMode = !writingMode;
   }
@@ -173,12 +189,20 @@
     
     // ctx.autoclear = false;
   }
+
+  function redo(){
+    clearCanvas();
+    $("#undone").children().last().remove();
+    addToPaths(undone.pop());
+    redrawPaths();
+  }
 </script>
 </head>
 <body>
   <div id="spacer" style="height: 100px;">SAVE IT</div>
-  <div id="writingProgress" style="height: 20px; width: 20px;"></div>
+  <div id="writingProgress" style="height: 20px; width: 80px;"></div>
   <button style="height: 50px; width: 100px;" onclick="undo()">Undo</button>
+  <button style="height: 50px; width: 100px;" onclick="redo()">Redo</button>
   <button style="height: 50px; width: 100px;" onclick="toggleWritingMode()">Toggle Writing Mode</button>
   <button style="height: 50px; width: 100px;" onclick="toggleHistory()">Toggle History</button>
   <div id="undone" style="position:absolute">
