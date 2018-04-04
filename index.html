@@ -35,7 +35,7 @@
     }
   window.onload = function(){
     toggleHistory();
-    CANVAS_HEIGHT = window.innerHeight - 30;
+    CANVAS_HEIGHT = window.innerHeight - 80;
     CANVAS_WIDTH = window.innerWidth;
     var inPath = false;
     var lastTouch;
@@ -148,8 +148,8 @@
   function transformSize(path){
     var pathChanged = path;
     for(var i = 0; i < path.pts.length; i++){
-      pathChanged.pts[i][0] = pathChanged.pts[i][0] * THUMBNAIL_WIDTH_RATIO;
-      pathChanged.pts[i][1] = pathChanged.pts[i][1] * THUMBNAIL_HEIGHT_RATIO;
+      pathChanged.pts[i][0] = pathChanged.pts[i][0] * SCALE;
+      pathChanged.pts[i][1] = pathChanged.pts[i][1] * SCALE;
     }
     return pathChanged;
   }
