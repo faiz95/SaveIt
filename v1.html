@@ -8,12 +8,13 @@
     var paths = [];
     var ctx;
     var undone = [];
-    var THUMBNAIL_HEIGHT_RATIO = 200/2000;
-    var THUMBNAIL_WIDTH_RATIO = 200/2000;
+    var THUMBNAIL_HEIGHT_RATIO = 200/500;
+    var THUMBNAIL_WIDTH_RATIO = 400/1500;
+    var NEW_PATH_MARGIN = 50;
   window.onload = function(){
     var inPath = false;
     var lastTouch;
-    var PATH_TIME_MARGIN = 1000;
+    var PATH_TIME_MARGIN = 5000;
     ctx = Sketch.create({
       autoclear: false,
       draw: function() {
@@ -36,12 +37,12 @@
                       
                     }
 
-          if(!inPath){
-            ctx.beginPath();
-            inPath = true;
-            paths.push({pts:[]})
-            lastTouch = Date.now();
-          }
+            if(!inPath){
+              ctx.beginPath();
+              inPath = true;
+              paths.push({pts:[]})
+            }
+              lastTouch = Date.now();
 
                     
 
@@ -64,14 +65,14 @@
   };
 
 
-  function draw(context, path, color='black'){
+  function draw(context, path, color='black', lineWidth=10){
     // if(color == 'red')
     //  console.log(path);
     context.strokeStyle = color;
     context.lineCap = 'round';
         context.lineJoin = 'round';
         context.fillStyle = color;;
-        context.lineWidth = 10;
+        context.lineWidth = lineWidth;
     context.beginPath();
     context.moveTo(path.pts[0][0], path.pts[0][1]);
     var lastX = path.pts[0][0];
@@ -80,7 +81,7 @@
       // context.stroke();
       ox = path.pts[i][0];
       oy = path.pts[i][1];
-      if(Math.abs(lastX - ox) > 100 || Math.abs(lastY - oy) > 100){
+      if(Math.abs(lastX - ox) > NEW_PATH_MARGIN * THUMBNAIL_WIDTH_RATIO || Math.abs(lastY - oy) > NEW_PATH_MARGIN * THUMBNAIL_HEIGHT_RATIO){
               context.moveTo(ox,oy);
             }
             lastX = ox;
@@ -120,8 +121,8 @@
   function addToUndone(path){
 
     undone.push(transformSize(path));
-    $("#undone").append("<div style='border-style: solid'><canvas height='200' width='200'></canvas></div>")
-    draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red');
+    $("#undone").append("<div style='border-style: solid'><canvas height='200' width='400'></canvas></div>")
+    draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
   }
 
   function undo(){
