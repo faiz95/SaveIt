@@ -1,5 +1,6 @@
 <html>
 <head>
+<link rel="stylesheet" href="style.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="sketch.js">
 </script>
@@ -149,7 +150,6 @@
   	}
 /*========================================================================*/
   	function toggleWritingMode(){
-  		var writtingMessage;
     	writingMode = !writingMode;
     	$('#writingModeToggle').html("Writing Mode: " + (writingMode ? "ON" : "OFF"));
   	}
@@ -157,7 +157,7 @@
   	function undo(){
     	clearCanvas();
     	addToUndone(paths.pop());
-      	redrawPaths();
+      redrawPaths();
   	}
 /*========================================================================*/
   	function redo(){
@@ -176,12 +176,12 @@
   	<div id="writingProgress" style="height: 20px; width: 80px;"></div>
   	<div id="writingModeToggle" style="height: 20px; width: 160px;">Writing Mode: ON</div>	
   	<div>
-  	<button style="height: 50px; width: 100px;" onclick="undo()">Undo</button>
-  	<button style="height: 50px; width: 100px;" onclick="redo()">Redo</button>
+  	<button onclick="undo()">Undo</button>
+  	<button onclick="redo()">Redo</button>
 	</div>
 	<div>
-  	<button style="height: 50px; width: 100px;" onclick="toggleWritingMode()">Toggle Writing Mode</button>
-  	<button style="height: 50px; width: 100px;" onclick="toggleHistory()">Toggle History</button>
+  	<button onclick="toggleWritingMode()">Toggle Writing Mode</button>
+  	<button onclick="toggleHistory()">Toggle History</button>
   	</div>
   	<div id="undone" style="position:absolute"></div>
 </body>
