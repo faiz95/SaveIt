@@ -25,7 +25,6 @@
         	color = "yellow";
         	message = "Writing";
       	}
-
       	$("#writingProgress").css("background-color", color);
       	$("#writingProgress").html(message);
     }
@@ -40,7 +39,6 @@
 	    CANVAS_WIDTH = window.innerWidth;
 	    var inPath = false;
 	    var lastTouch;
-
 	    ctx = Sketch.create({
 	      	autoclear: false,
 	      	draw: function() {
@@ -60,7 +58,6 @@
 		            }
 	            	return;
 	            }
-
 	            lastTouch = Date.now();
 	            if(!writingMode){
 	              	return;
@@ -92,17 +89,14 @@
         context.lineWidth = lineWidth;
 	    context.beginPath();
 	    context.moveTo(path.pts[0][0], path.pts[0][1]);
-
 	    var lastX = path.pts[0][0];
 	    var lastY = path.pts[0][1];
-
 	    for(var i = 1; i < path.pts.length; i++){
       		ox = path.pts[i][0];
       		oy = path.pts[i][1];
       		if(Math.abs(lastX - ox) > NEW_PATH_MARGIN * THUMBNAIL_WIDTH_RATIO || Math.abs(lastY - oy) > NEW_PATH_MARGIN * THUMBNAIL_HEIGHT_RATIO){
               	context.moveTo(ox,oy);
             }
-
             lastX = ox;
             lastY = oy;
       		context.lineTo(ox, oy);
@@ -139,8 +133,8 @@
   	function unTransformSize(path){
     	var pathChanged = path;
     	for(var i = 0; i < path.pts.length; i++){
-      		pathChanged.pts[i][0] = pathChanged.pts[i][0] / THUMBNAIL_WIDTH_RATIO;
-      		pathChanged.pts[i][1] = pathChanged.pts[i][1] / THUMBNAIL_HEIGHT_RATIO;
+      		pathChanged.pts[i][0] = pathChanged.pts[i][0] / SCALE;
+      		pathChanged.pts[i][1] = pathChanged.pts[i][1] / SCALE;
     	}
     	return pathChanged;
   	}
@@ -150,7 +144,14 @@
   	}
 /*========================================================================*/
   	function toggleWritingMode(){
+  		var writtingMessage;
     	writingMode = !writingMode;
+    	if (writingMode){
+    		writtingMessage = "Writing Mode: ON";
+    	} else{
+    		writtingMessage = "Writing Mode: OFF";
+    	}
+    	$('writingModeToggle').html(writtingMessage);
   	}
 /*========================================================================*/
   	function undo(){
@@ -160,20 +161,28 @@
   	}
 /*========================================================================*/
   	function redo(){
-	    clearCanvas();
-	    $("#undone").children().last().remove();
-	    addToPaths(undone.pop());
-	    redrawPaths();
+  		$("#undone").children().last().remove();
+	    if (undone != null){
+	    	clearCanvas();
+	    	addToPaths(undone.pop());
+	    	redrawPaths();	
+	    }
+
   	}
 </script>
 </head>
 <body>
-  <div id="spacer" style="height: 100px;">SAVE IT</div>
-  <div id="writingProgress" style="height: 20px; width: 80px;"></div>
-  <button style="height: 50px; width: 100px;" onclick="undo()">Undo</button>
-  <button style="height: 50px; width: 100px;" onclick="redo()">Redo</button>
-  <button style="height: 50px; width: 100px;" onclick="toggleWritingMode()">Toggle Writing Mode</button>
-  <button style="height: 50px; width: 100px;" onclick="toggleHistory()">Toggle History</button>
-  <div id="undone" style="position:absolute"></div>
+  	<div id="spacer" style="height: 100px;">SAVE IT</div>
+  	<div id="writingProgress" style="height: 20px; width: 80px;"></div>
+  	<div id="writingModeToggle" style="height: 20px; width: 160px;">Writing Mode: ON</div>	
+  	<div>
+  	<button style="height: 50px; width: 100px;" onclick="undo()">Undo</button>
+  	<button style="height: 50px; width: 100px;" onclick="redo()">Redo</button>
+	</div>
+	<div>
+  	<button style="height: 50px; width: 100px;" onclick="toggleWritingMode()">Toggle Writing Mode</button>
+  	<button style="height: 50px; width: 100px;" onclick="toggleHistory()">Toggle History</button>
+  	</div>
+  	<div id="undone" style="position:absolute"></div>
 </body>
 </html>
