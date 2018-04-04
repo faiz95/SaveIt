@@ -4,8 +4,7 @@
 <script src="sketch.js">
 </script>
 <script>
-
-    var paths = [];
+	var paths = [];
     var ctx;
     var undone = [];
     var THUMBNAIL_HEIGHT_RATIO = 200/500;
@@ -15,187 +14,157 @@
     var CANVAS_WIDTH, CANVAS_HEIGHT;
     var writingMode = true;
     var saved = true;
-
     var PATH_TIME_MARGIN = 1000;
+/*========================================================================*/
     function updateWritingProgress(saveStatus){
-      var color, message;
-      if(saveStatus){
-        color = "green";
-        message = "Saved";
-      } else {
-        color = "yellow";
-        message = "Writing";
-      }
-      $("#writingProgress").css("background-color", color);
-      $("#writingProgress").html(message);
-    }
+      	var color, message;
+      	if(saveStatus){
+        	color = "green";
+        	message = "Saved";
+      	} else {
+        	color = "yellow";
+        	message = "Writing";
+      	}
 
+      	$("#writingProgress").css("background-color", color);
+      	$("#writingProgress").html(message);
+    }
+/*========================================================================*/
     function toggleHistory(){
-      $("#undone").toggle();
+      	$("#undone").toggle();
     }
-  window.onload = function(){
-    toggleHistory();
-    CANVAS_HEIGHT = window.innerHeight - 80;
-    CANVAS_WIDTH = window.innerWidth;
-    var inPath = false;
-    var lastTouch;
-    ctx = Sketch.create({
-      autoclear: false,
-      draw: function() {
-        
-        this.lineCap = 'round';
-                this.lineJoin = 'round';
-                this.fillStyle = this.strokeStyle = "BLACK";
-                this.lineWidth = 10;
+/*========================================================================*/
+  	window.onload = function(){
+	    toggleHistory();
+	    CANVAS_HEIGHT = window.innerHeight - 80;
+	    CANVAS_WIDTH = window.innerWidth;
+	    var inPath = false;
+	    var lastTouch;
 
-                // for ( var i = this.touches.length - 1, touch; i >= 0; i-- ) {
+	    ctx = Sketch.create({
+	      	autoclear: false,
+	      	draw: function() {
+	        	this.lineCap = 'round';
+	            this.lineJoin = 'round';
+	            this.fillStyle = this.strokeStyle = "BLACK";
+	            this.lineWidth = 10;
+	            touch = this.touches[0];
+	            if(typeof touch === 'undefined'){
+		            if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
+			            inPath = false;
+			            ctx.closePath();
+			            updateWritingProgress(true);
+		            } else {
+		              	if(inPath)
+		                updateWritingProgress(false);
+		            }
+	            	return;
+	            }
 
-                    touch = this.touches[0];
-                    if(typeof touch === 'undefined'){
-                    if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
-                      inPath = false;
-                      ctx.closePath();
-                      updateWritingProgress(true);
-                      // console.table(paths)
-                    } else {
-                      // path should not be closed
-                      if(inPath)
-                        updateWritingProgress(false);
-                      
-                    }
-
-                      return;
-                      
-                    }
-                     lastTouch = Date.now();
-
-                    if(!writingMode){
-                      return;
-                    }
-
-            if(!inPath || paths.length == 0){
-              ctx.beginPath();
-              inPath = true;
-              paths.push({pts:[]})
-            }
-             
-                    updateWritingProgress(false);
-
-                    // this.beginPath();
-                    var ox = touch.ox;
-                    var oy = touch.oy;
-                    // if(Math.abs(touch.x - ox) > 1000 || Math.abs(touch.y - oy) > 1000){
-                    //  ox = touch.x;
-                    //  oy = touch.y;
-                    // }
-                    this.moveTo( ox, oy );
-                    this.lineTo( touch.x, touch.y );
-                    paths[paths.length - 1].pts.push([touch.x, touch.y])
-                    this.stroke();
-                // }
-            }
-
-
-    });
-    $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
-  };
-
-
-  function draw(context, path, color='black', lineWidth=10){
-    // if(color == 'red')
-    //  console.log(path);
-    context.strokeStyle = color;
-    context.lineCap = 'round';
+	            lastTouch = Date.now();
+	            if(!writingMode){
+	              	return;
+	            }
+	            if(!inPath || paths.length == 0){
+	              	ctx.beginPath();
+	              	inPath = true;
+	              	paths.push({pts:[]})
+	            }
+	             
+	            updateWritingProgress(false);
+	            
+	            var ox = touch.ox;
+	            var oy = touch.oy;
+	            this.moveTo( ox, oy );
+	            this.lineTo( touch.x, touch.y );
+	            paths[paths.length - 1].pts.push([touch.x, touch.y])
+	            this.stroke();
+	        }
+		});
+	$('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
+	};
+/*========================================================================*/
+  	function draw(context, path, color='black', lineWidth=10){
+	    context.strokeStyle = color;
+	    context.lineCap = 'round';
         context.lineJoin = 'round';
         context.fillStyle = color;;
         context.lineWidth = lineWidth;
-    context.beginPath();
-    context.moveTo(path.pts[0][0], path.pts[0][1]);
-    var lastX = path.pts[0][0];
-    var lastY = path.pts[0][1];
-    for(var i = 1; i < path.pts.length; i++){
-      // context.stroke();
-      ox = path.pts[i][0];
-      oy = path.pts[i][1];
-      if(Math.abs(lastX - ox) > NEW_PATH_MARGIN * THUMBNAIL_WIDTH_RATIO || Math.abs(lastY - oy) > NEW_PATH_MARGIN * THUMBNAIL_HEIGHT_RATIO){
-              context.moveTo(ox,oy);
+	    context.beginPath();
+	    context.moveTo(path.pts[0][0], path.pts[0][1]);
+
+	    var lastX = path.pts[0][0];
+	    var lastY = path.pts[0][1];
+
+	    for(var i = 1; i < path.pts.length; i++){
+      		ox = path.pts[i][0];
+      		oy = path.pts[i][1];
+      		if(Math.abs(lastX - ox) > NEW_PATH_MARGIN * THUMBNAIL_WIDTH_RATIO || Math.abs(lastY - oy) > NEW_PATH_MARGIN * THUMBNAIL_HEIGHT_RATIO){
+              	context.moveTo(ox,oy);
             }
+
             lastX = ox;
             lastY = oy;
-            // if(color=='red')
-            // console.log(ox,oy);
-      context.lineTo(ox, oy);
-      context.stroke();
-    }
-  }
-
-  function clearCanvas(){
-    // ctx.clear();
-    ctx.clearRect(0, 0, 2000, 2000);
-
-  }
-
-  function redrawPaths(){
-    for(var i = 0; i < paths.length; i++){
-
-      path = paths[i];
-      draw(ctx, path);
-    }
-    // ctx.closePath();
-    // ctx.stroke();
-  }
-
-  function transformSize(path){
-    var pathChanged = path;
-    for(var i = 0; i < path.pts.length; i++){
-      pathChanged.pts[i][0] = pathChanged.pts[i][0] * SCALE;
-      pathChanged.pts[i][1] = pathChanged.pts[i][1] * SCALE;
-    }
-    return pathChanged;
-  }
-
-  function addToUndone(path){
-
-    undone.push(transformSize(path));
-    $("#undone").append(
-      "<div style='border-style: solid'><canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>"
-    );
-    draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
-  }
-
-  function unTransformSize(path){
-    var pathChanged = path;
-    for(var i = 0; i < path.pts.length; i++){
-      pathChanged.pts[i][0] = pathChanged.pts[i][0] / THUMBNAIL_WIDTH_RATIO;
-      pathChanged.pts[i][1] = pathChanged.pts[i][1] / THUMBNAIL_HEIGHT_RATIO;
-    }
-    return pathChanged;
-  }
-
-  function addToPaths(path){
-    paths.push(unTransformSize(path));
-  }
-
-
-  function toggleWritingMode(){
-    writingMode = !writingMode;
-  }
-
-  function undo(){
-    // ctx.autoclear = true;
-    clearCanvas();
-      addToUndone(paths.pop());
-      redrawPaths();
-    
-    // ctx.autoclear = false;
-  }
-
-  function redo(){
-    clearCanvas();
-    $("#undone").children().last().remove();
-    addToPaths(undone.pop());
-    redrawPaths();
-  }
+      		context.lineTo(ox, oy);
+      		context.stroke();
+    	}
+  	}
+/*========================================================================*/
+  	function clearCanvas(){
+    	ctx.clearRect(0, 0, 2000, 2000);
+  	}
+/*========================================================================*/
+  	function redrawPaths(){
+    	for(var i = 0; i < paths.length; i++){
+      		path = paths[i];
+      		draw(ctx, path);
+    	}
+  	}
+/*========================================================================*/
+  	function transformSize(path){
+    	var pathChanged = path;
+    	for(var i = 0; i < path.pts.length; i++){
+      		pathChanged.pts[i][0] = pathChanged.pts[i][0] * SCALE;
+      		pathChanged.pts[i][1] = pathChanged.pts[i][1] * SCALE;
+    	}
+    	return pathChanged;
+  	}
+/*========================================================================*/
+  	function addToUndone(path){
+    	undone.push(transformSize(path));
+    	$("#undone").append("<div style='border-style: solid'><canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
+    	draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
+  	}
+/*========================================================================*/
+  	function unTransformSize(path){
+    	var pathChanged = path;
+    	for(var i = 0; i < path.pts.length; i++){
+      		pathChanged.pts[i][0] = pathChanged.pts[i][0] / THUMBNAIL_WIDTH_RATIO;
+      		pathChanged.pts[i][1] = pathChanged.pts[i][1] / THUMBNAIL_HEIGHT_RATIO;
+    	}
+    	return pathChanged;
+  	}
+/*========================================================================*/
+  	function addToPaths(path){
+    	paths.push(unTransformSize(path));
+  	}
+/*========================================================================*/
+  	function toggleWritingMode(){
+    	writingMode = !writingMode;
+  	}
+/*========================================================================*/
+  	function undo(){
+    	clearCanvas();
+    	addToUndone(paths.pop());
+      	redrawPaths();
+  	}
+/*========================================================================*/
+  	function redo(){
+	    clearCanvas();
+	    $("#undone").children().last().remove();
+	    addToPaths(undone.pop());
+	    redrawPaths();
+  	}
 </script>
 </head>
 <body>
@@ -205,8 +174,6 @@
   <button style="height: 50px; width: 100px;" onclick="redo()">Redo</button>
   <button style="height: 50px; width: 100px;" onclick="toggleWritingMode()">Toggle Writing Mode</button>
   <button style="height: 50px; width: 100px;" onclick="toggleHistory()">Toggle History</button>
-  <div id="undone" style="position:absolute">
-
-  </div>
+  <div id="undone" style="position:absolute"></div>
 </body>
 </html>
