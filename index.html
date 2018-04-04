@@ -10,11 +10,34 @@
     var undone = [];
     var THUMBNAIL_HEIGHT_RATIO = 200/500;
     var THUMBNAIL_WIDTH_RATIO = 400/1500;
-    var NEW_PATH_MARGIN = 50;
+    var SCALE = 0.25;
+    var NEW_PATH_MARGIN = 100;
+    var CANVAS_WIDTH, CANVAS_HEIGHT;
+    var writingMode = true;
+    var saved = true;
+
+    var PATH_TIME_MARGIN = 1000;
+    function updateWritingProgress(saveStatus){
+      var color;
+      if(saveStatus){
+        color = "green";
+      } else {
+        color = "red";
+      }
+
+      
+      $("#writingProgress").css("background-color", color);
+    }
+
+    function toggleHistory(){
+      $("#undone").toggle();
+    }
   window.onload = function(){
+    toggleHistory();
+    CANVAS_HEIGHT = window.innerHeight - 30;
+    CANVAS_WIDTH = window.innerWidth;
     var inPath = false;
     var lastTouch;
-    var PATH_TIME_MARGIN = 5000;
     ctx = Sketch.create({
       autoclear: false,
       draw: function() {
@@ -31,20 +54,31 @@
                     if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
                       inPath = false;
                       ctx.closePath();
+                      updateWritingProgress(true);
                       // console.table(paths)
-                    }
-                      return;
+                    } else {
+                      // path should not be closed
+                      if(inPath)
+                        updateWritingProgress(false);
                       
                     }
 
-            if(!inPath){
+                      return;
+                      
+                    }
+                     lastTouch = Date.now();
+
+                    if(!writingMode){
+                      return;
+                    }
+
+            if(!inPath || paths.length == 0){
               ctx.beginPath();
               inPath = true;
               paths.push({pts:[]})
             }
-              lastTouch = Date.now();
-
-                    
+             
+                    updateWritingProgress(false);
 
                     // this.beginPath();
                     var ox = touch.ox;
@@ -62,6 +96,7 @@
 
 
     });
+    $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
   };
 
 
@@ -121,8 +156,13 @@
   function addToUndone(path){
 
     undone.push(transformSize(path));
-    $("#undone").append("<div style='border-style: solid'><canvas height='200' width='400'></canvas></div>")
+    $("#undone").append(
+      "<div style='border-style: solid'><canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>"
+    );
     draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
+  }
+  function toggleWritingMode(){
+    writingMode = !writingMode;
   }
 
   function undo(){
@@ -136,9 +176,12 @@
 </script>
 </head>
 <body>
-  <div style="background-color: red; margin-bottom:20px;">hello</div>
-  <button onclick="undo()">click me!</button>
-  <div id="undone">
+  <div id="spacer" style="height: 100px;">SAVE IT</div>
+  <div id="writingProgress" style="height: 20px; width: 20px;"></div>
+  <button style="height: 50px; width: 100px;" onclick="undo()">Undo</button>
+  <button style="height: 50px; width: 100px;" onclick="toggleWritingMode()">Toggle Writing Mode</button>
+  <button style="height: 50px; width: 100px;" onclick="toggleHistory()">Toggle History</button>
+  <div id="undone" style="position:absolute">
 
   </div>
 </body>
