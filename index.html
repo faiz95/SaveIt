@@ -6,16 +6,16 @@
 </script>
 <script>
 	var paths = [];
-    var ctx;
-    var undone = [];
-    var THUMBNAIL_HEIGHT_RATIO = 200/500;
-    var THUMBNAIL_WIDTH_RATIO = 400/1500;
-    var SCALE = 0.25;
-    var NEW_PATH_MARGIN = 100;
-    var CANVAS_WIDTH, CANVAS_HEIGHT;
-    var writingMode = true;
-    var saved = true;
-    var PATH_TIME_MARGIN = 1000;
+  var ctx;
+  var undone = [];
+  var THUMBNAIL_HEIGHT_RATIO = 200/500;
+  var THUMBNAIL_WIDTH_RATIO = 400/1500;
+  var SCALE = 0.25;
+  var NEW_PATH_MARGIN = 100;
+  var CANVAS_WIDTH, CANVAS_HEIGHT;
+  var writingMode = true;
+  var saved = true;
+  var PATH_TIME_MARGIN = 1000;
 /*========================================================================*/
     function updateWritingProgress(saveStatus){
       	var color, message;
@@ -167,12 +167,49 @@
 	    	addToPaths(undone.pop());
 	    	redrawPaths();	
 	    }
-
   	}
+    /*
+    Saving function that will take paths and undone, check if they are empty, and save it on the phone
+    Inorder to access function in android, the name "Android", a varable created in android studio as a identifier between the two codes, must be use.
+    .showToast is a function that will make a pop-up.
+
+    Remove any lines of code that has Android. if testing without an android emulator, it might produce errors.
+
+    Trying to convert paths object into a string, but not successful
+    */
+    function saveNotes(){
+
+      if (paths != "" || undone != "")
+      {
+        var pathCheck = "";
+        for (var i = 0; i < paths.length; i++)
+        {
+          pathCheck += paths[i];
+        }
+        $("#saveChecker").html(pathCheck);
+        var check = false;
+        check = Android.checkSave(paths, undone);
+        if(check)
+        {
+          Android.showToast("saved " + pathCheck);
+         
+        }
+        else
+        {
+          Android.showToast("error");
+        }
+      }
+      else
+      {
+        Android.showToast("Nothing to Save");
+        
+      }
+      
+    }
 </script>
 </head>
 <body>
-  	<div id="spacer" style="height: 100px;">SAVE IT</div>
+  	<div id="spacer" style="height: 100px;">SAVE IT v.2.1320</div>
   	<div id="writingProgress" style="height: 20px; width: 80px;"></div>
   	<div id="writingModeToggle" style="height: 20px; width: 160px;">Writing Mode: ON</div>	
   	<div>
@@ -182,7 +219,12 @@
 	<div>
   	<button onclick="toggleWritingMode()">Toggle Writing Mode</button>
   	<button onclick="toggleHistory()">Toggle History</button>
-  	</div>
-  	<div id="undone" style="position:absolute"></div>
+  </div>
+  <div>
+    <button onclick="saveNotes()">SaveNotes</button>
+    <div id="saveChecker" style="height: 100px;">Testing</div>
+  </div>
+  <div id="undone" style="position:absolute"></div>
 </body>
 </html>
+
