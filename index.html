@@ -86,9 +86,9 @@
   	function draw(context, path, color='black', lineWidth=10){
 	    context.strokeStyle = color;
 	    context.lineCap = 'round';
-        context.lineJoin = 'round';
-        context.fillStyle = color;;
-        context.lineWidth = lineWidth;
+      context.lineJoin = 'round';
+      context.fillStyle = color;;
+      context.lineWidth = lineWidth;
 	    context.beginPath();
 	    context.moveTo(path.pts[0][0], path.pts[0][1]);
 	    var lastX = path.pts[0][0];
@@ -173,9 +173,7 @@
     Inorder to access function in android, the name "Android", a varable created in android studio as a identifier between the two codes, must be use.
     .showToast is a function that will make a pop-up.
 
-    Remove any lines of code that has Android. if testing without an android emulator, it might produce errors.
-
-    Trying to convert paths object into a string, but not successful
+    Remove any lines of code that has Android. if testing without an android emulator, and uncomment line 213 to line 226 if testing on browser.
     */
     function saveNotes(){
 
@@ -184,14 +182,21 @@
         var pathCheck = "";
         for (var i = 0; i < paths.length; i++)
         {
-          pathCheck += paths[i];
+          for (var j = 0; j < paths[i].pts.length; j++)
+          {
+            pathCheck += paths[i].pts[j][0];
+            pathCheck += " ";
+            pathCheck += paths[i].pts[j][1];
+            pathCheck += " ";
+          }
+          pathCheck += "\t";
         }
-        $("#saveChecker").html(pathCheck);
+        //$("#saveChecker").html(pathCheck);
         var check = false;
         check = Android.checkSave(paths, undone);
         if(check)
         {
-          Android.showToast("saved " + pathCheck);
+          Android.showToast("saved \t" + pathCheck);
          
         }
         else
@@ -204,12 +209,26 @@
         Android.showToast("Nothing to Save");
         
       }
+      /*
+      var pathCheck = "";
       
+      for (var i = 0; i < paths.length; i++)
+      {
+        for (var j = 0; j < paths[i].pts.length; j++)
+        {
+          pathCheck += paths[i].pts[j][0];
+          pathCheck += " ";
+          pathCheck += paths[i].pts[j][1];
+          pathCheck += " ";
+        }
+        pathCheck += "\t";
+      }
+      $("#saveChecker").html(pathCheck);*/
     }
 </script>
 </head>
 <body>
-  	<div id="spacer" style="height: 100px;">SAVE IT v.2.1320</div>
+  	<div id="spacer" style="height: 100px;">SAVE IT v.2.1325</div>
   	<div id="writingProgress" style="height: 20px; width: 80px;"></div>
   	<div id="writingModeToggle" style="height: 20px; width: 160px;">Writing Mode: ON</div>	
   	<div>
