@@ -50,7 +50,6 @@
     var id = Math.floor(Math.random()*1000000000).toString();
     addToManifest(id);
     writeDocument(id, [], []);
-    console.log(window.location.origin + "/?" + id);
     window.location.href = window.location.origin + "/?" + id;
   }
 
@@ -70,6 +69,7 @@
   var saved = true;
   var sessionId = '';
   var PATH_TIME_MARGIN = 1000;
+  var inStroke = false;
 /*========================================================================*/
     function updateWritingProgress(saveStatus){
       	var color, message;
@@ -89,7 +89,7 @@
     }
 /*========================================================================*/
   	function draw(context, path, color='black', lineWidth=10){
-	    context.strokeStyle = color;
+      context.strokeStyle = color;
 	    context.lineCap = 'round';
       context.lineJoin = 'round';
       context.fillStyle = color;;
@@ -99,15 +99,20 @@
 	    var lastX = path.pts[0][0];
 	    var lastY = path.pts[0][1];
 	    for(var i = 1; i < path.pts.length; i++){
+          if(!path.pts[i]){
+            context.closePath();
+            context.beginPath();
+          }
       		ox = path.pts[i][0];
       		oy = path.pts[i][1];
       		if(Math.abs(lastX - ox) > NEW_PATH_MARGIN * THUMBNAIL_WIDTH_RATIO || Math.abs(lastY - oy) > NEW_PATH_MARGIN * THUMBNAIL_HEIGHT_RATIO){
-              	context.moveTo(ox,oy);
+              	// context.moveTo(ox,oy);
             }
             lastX = ox;
             lastY = oy;
       		context.lineTo(ox, oy);
       		context.stroke();
+          context.closePath(); // TODO: is this necessary or correct?
     	}
   	}
 /*========================================================================*/
@@ -116,7 +121,7 @@
   	}
 /*========================================================================*/
   	function redrawPaths(){
-    	for(var i = 0; i < paths.length; i++){
+      for(var i = 0; i < paths.length; i++){
       		path = paths[i];
       		draw(ctx, path);
     	}
@@ -220,6 +225,11 @@
                 this.lineWidth = 10;
                 touch = this.touches[0];
                 if(typeof touch === 'undefined'){
+                  if(inPath && inStroke){
+                    paths[paths.length-1].pts.push(false);
+                  }
+                  inStroke = false;
+                  
                   if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
                     inPath = false;
                     ctx.closePath();
@@ -231,6 +241,7 @@
                   return;
                 }
                 lastTouch = Date.now();
+                inStroke = true;
                 if(!writingMode){
                     return;
                 }
