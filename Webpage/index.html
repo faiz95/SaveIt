@@ -31,8 +31,9 @@
     // Array#includes seems to be compatible with mobile device browsers
   }
 
-  function writeDocument(id, paths, undone){
+  function writeDocument(id, name, paths, undone){
     var obj = {
+      name: name,
       paths: paths,
       undone: undone
     };
@@ -49,7 +50,7 @@
   function newNote(){
     var id = Math.floor(Math.random()*1000000000).toString();
     addToManifest(id);
-    writeDocument(id, [], []);
+    writeDocument(id, 'New Note', [], []);
     window.location.href = window.location.origin + "/?" + id;
   }
 
@@ -89,6 +90,8 @@
     }
 /*========================================================================*/
   	function draw(context, path, color='black', lineWidth=10){
+      console.log("drawing path:");
+      console.log(path);
       context.strokeStyle = color;
 	    context.lineCap = 'round';
       context.lineJoin = 'round';
@@ -100,6 +103,7 @@
 	    var lastY = path.pts[0][1];
 	    for(var i = 1; i < path.pts.length; i++){
           if(!path.pts[i]){
+            console.log("starting new stroke");
             context.closePath();
             context.beginPath();
           }
@@ -112,6 +116,7 @@
             lastY = oy;
       		context.lineTo(ox, oy);
       		context.stroke();
+          context.moveTo(ox,oy);
           context.closePath(); // TODO: is this necessary or correct?
     	}
   	}
@@ -178,6 +183,10 @@
 	    	redrawPaths();	
 	    }
   	}
+
+    function getSessionName(){
+      return $("#docName").val();
+    }
     /*
     Saving function that will take paths and undone, check if they are empty, and save it on the phone
     Inorder to access function in android, the name "Android", a varable created in android studio as a identifier between the two codes, must be use.
@@ -186,7 +195,7 @@
     Remove any lines of code that has Android. if testing without an android emulator, and uncomment line 213 to line 226 if testing on browser.
     */
     function saveNotes(){
-      writeDocument(sessionId, paths, undone);
+      writeDocument(sessionId, getSessionName(), paths, undone);
       /*
       var pathCheck = "";
       
@@ -209,6 +218,11 @@
       sessionId = window.location.search.substring(1);
       if(sessionId == ''){
         $("#menu").show();
+        var docsList = localGet("DOCUMENTS_MANIFEST");
+        for(var i = 0; i < docsList.length; i++){
+          var id = docsList[i];
+          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "</a><br>");
+        }
       } else {
         $("#editor").show();
         toggleHistory();
@@ -276,9 +290,11 @@
   
   <div id="menu" style="display: none;">
     <button onclick="newNote()">New note</button>  
+    <div id="notesList"></div>
   </div>
   
-  <div id="editor" style="display: none;">	
+  <div id="editor" style="display: none;">
+    <input type="text" id="docName" value="New Note">
     <div id="writingProgress" style="height: 20px; width: 80px;"></div>
   	<div id="writingModeToggle" style="height: 20px; width: 160px;">Writing Mode: ON</div>	
   	<div>
