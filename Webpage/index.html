@@ -4,7 +4,60 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="sketch.js">
 </script>
+
 <script>
+  // note session management
+  
+  function localGet(key){
+    var str = localStorage.getItem(key);
+    if(str == "")
+      return null;
+    return JSON.parse(str);
+  }
+
+  function localSet(key, val){
+
+    localStorage.setItem(key, JSON.stringify(val));
+  }
+
+  function checkWindowSetup(){
+    if(localGet("DOCUMENTS_MANIFEST") == null)
+      localSet("DOCUMENTS_MANIFEST", []);
+  }
+
+  function documentExists(id){
+    var docsList = localGet("DOCUMENTS_MANIFEST");
+    return docsList.includes(id);
+    // Array#includes seems to be compatible with mobile device browsers
+  }
+
+  function writeDocument(id, paths, undone){
+    var obj = {
+      paths: paths,
+      undone: undone
+    };
+
+    localSet(id, obj);
+  }
+
+  function addToManifest(id){
+    var newManifest = localGet("DOCUMENTS_MANIFEST");
+    newManifest.push(id);
+    localSet("DOCUMENTS_MANIFEST", newManifest);
+  }
+
+  function newNote(){
+    var id = Math.floor(Math.random()*1000000000).toString();
+    addToManifest(id);
+    writeDocument(id, [], []);
+    console.log(window.location.origin + "/?" + id);
+    window.location.href = window.location.origin + "/?" + id;
+  }
+
+</script>
+
+<script>
+  // window edit stuff
 	var paths = [];
   var ctx;
   var undone = [];
@@ -15,6 +68,7 @@
   var CANVAS_WIDTH, CANVAS_HEIGHT;
   var writingMode = true;
   var saved = true;
+  var sessionId = '';
   var PATH_TIME_MARGIN = 1000;
 /*========================================================================*/
     function updateWritingProgress(saveStatus){
@@ -33,55 +87,6 @@
     function toggleHistory(){
       	$("#undone").toggle();
     }
-/*========================================================================*/
-  	window.onload = function(){
-	    toggleHistory();
-	    CANVAS_HEIGHT = window.innerHeight - 80;
-	    CANVAS_WIDTH = window.innerWidth;
-	    var inPath = false;
-	    var lastTouch;
-	    ctx = Sketch.create({
-	      	autoclear: false,
-	      	draw: function() {
-	        	this.lineCap = 'round';
-	            this.lineJoin = 'round';
-	            this.fillStyle = this.strokeStyle = "BLACK";
-	            this.lineWidth = 10;
-	            touch = this.touches[0];
-	            if(typeof touch === 'undefined'){
-		            if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
-			            inPath = false;
-			            ctx.closePath();
-			            updateWritingProgress(true);
-		            } else {
-		              	if(inPath)
-		                updateWritingProgress(false);
-		            }
-	            	return;
-	            }
-	            lastTouch = Date.now();
-	            if(!writingMode){
-	              	return;
-	            }
-	            if(!inPath || paths.length == 0){
-	              	ctx.beginPath();
-	              	inPath = true;
-	              	paths.push({pts:[]})
-	            }
-	             
-	            updateWritingProgress(false);
-	            
-	            var ox = touch.ox;
-	            var oy = touch.oy;
-	            this.moveTo( ox, oy );
-	            this.lineTo( touch.x, touch.y );
-	            paths[paths.length - 1].pts.push([touch.x, touch.y])
-	            this.stroke();
-	        }
-		});
-	$('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
-  $('canvas').first().css('border-style', 'dashed');
-	};
 /*========================================================================*/
   	function draw(context, path, color='black', lineWidth=10){
 	    context.strokeStyle = color;
@@ -176,39 +181,7 @@
     Remove any lines of code that has Android. if testing without an android emulator, and uncomment line 213 to line 226 if testing on browser.
     */
     function saveNotes(){
-
-      if (paths != "" || undone != "")
-      {
-        var pathCheck = "";
-        for (var i = 0; i < paths.length; i++)
-        {
-          for (var j = 0; j < paths[i].pts.length; j++)
-          {
-            pathCheck += paths[i].pts[j][0];
-            pathCheck += " ";
-            pathCheck += paths[i].pts[j][1];
-            pathCheck += " ";
-          }
-          pathCheck += "\t";
-        }
-        //$("#saveChecker").html(pathCheck);
-        var check = false;
-        check = Android.checkSave(paths, undone);
-        if(check)
-        {
-          Android.showToast("saved \t" + pathCheck);
-         
-        }
-        else
-        {
-          Android.showToast("error");
-        }
-      }
-      else
-      {
-        Android.showToast("Nothing to Save");
-        
-      }
+      writeDocument(sessionId, paths, undone);
       /*
       var pathCheck = "";
       
@@ -225,25 +198,92 @@
       }
       $("#saveChecker").html(pathCheck);*/
     }
+/*========================================================================*/
+  window.onload = function(){
+      checkWindowSetup();
+      sessionId = window.location.search.substring(1);
+      if(sessionId == ''){
+        $("#menu").show();
+      } else {
+        $("#editor").show();
+        toggleHistory();
+        CANVAS_HEIGHT = window.innerHeight - 80;
+        CANVAS_WIDTH = window.innerWidth;
+        var inPath = false;
+        var lastTouch;
+        ctx = Sketch.create({
+            autoclear: false,
+            draw: function() {
+              this.lineCap = 'round';
+                this.lineJoin = 'round';
+                this.fillStyle = this.strokeStyle = "BLACK";
+                this.lineWidth = 10;
+                touch = this.touches[0];
+                if(typeof touch === 'undefined'){
+                  if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
+                    inPath = false;
+                    ctx.closePath();
+                    updateWritingProgress(true);
+                  } else {
+                      if(inPath)
+                      updateWritingProgress(false);
+                  }
+                  return;
+                }
+                lastTouch = Date.now();
+                if(!writingMode){
+                    return;
+                }
+                if(!inPath || paths.length == 0){
+                    ctx.beginPath();
+                    inPath = true;
+                    paths.push({pts:[]})
+                }
+                 
+                updateWritingProgress(false);
+                
+                var ox = touch.ox;
+                var oy = touch.oy;
+                this.moveTo( ox, oy );
+                this.lineTo( touch.x, touch.y );
+                paths[paths.length - 1].pts.push([touch.x, touch.y])
+                this.stroke();
+            }
+        });
+        paths = localGet(sessionId).paths;
+        for(var i = 0; i < paths.length; i++){
+          draw(ctx, paths[i]);
+        }
+        $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
+        $('canvas').first().css('border-style', 'dashed');
+    }
+  };
 </script>
 </head>
 <body>
-  	<div id="spacer" style="height: 100px;">SAVE IT v.2.1325</div>
-  	<div id="writingProgress" style="height: 20px; width: 80px;"></div>
+	<div id="spacer" style="height: 100px;">SAVE IT v.2.1325</div>
+  
+  <div id="menu" style="display: none;">
+    <button onclick="newNote()">New note</button>  
+  </div>
+  
+  <div id="editor" style="display: none;">	
+    <div id="writingProgress" style="height: 20px; width: 80px;"></div>
   	<div id="writingModeToggle" style="height: 20px; width: 160px;">Writing Mode: ON</div>	
   	<div>
-  	<button onclick="undo()">Undo</button>
-  	<button onclick="redo()">Redo</button>
-	</div>
-	<div>
-  	<button onclick="toggleWritingMode()">Toggle Writing Mode</button>
-  	<button onclick="toggleHistory()">Toggle History</button>
+    	<button onclick="undo()">Undo</button>
+    	<button onclick="redo()">Redo</button>
+  	</div>
+  	<div>
+    	<button onclick="toggleWritingMode()">Toggle Writing Mode</button>
+    	<button onclick="toggleHistory()">Toggle History</button>
+    </div>
+    <div>
+      <button onclick="saveNotes()">SaveNotes</button>
+      <div id="saveChecker" style="height: 100px;">Testing</div>
+    </div>
+    <div id="undone" style="position:absolute"></div>
   </div>
-  <div>
-    <button onclick="saveNotes()">SaveNotes</button>
-    <div id="saveChecker" style="height: 100px;">Testing</div>
-  </div>
-  <div id="undone" style="position:absolute"></div>
 </body>
 </html>
 
