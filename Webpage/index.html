@@ -57,10 +57,12 @@
 
   function getTime(){
     var currentTime = new Date();
-    var hour = 1 + currentTime.getHours();
     var time = currentTime.toLocaleDateString() + "\t" + currentTime.toLocaleTimeString();
-    console.log(time);
     return time;
+  }
+
+  function goBack(){
+     window.location.href = window.location.origin;
   }
 
 </script>
@@ -87,7 +89,7 @@
       	var color, message;
       	if(saveStatus){
         	color = "green";
-        	message = "Saved";
+        	message = "Paused";
       	} else {
         	color = "yellow";
         	message = "Writing";
@@ -198,16 +200,11 @@
     function getSessionName(){
       return $("#docName").val();
     }
-    /*
-    Saving function that will take paths and undone, check if they are empty, and save it on the phone
-    Inorder to access function in android, the name "Android", a varable created in android studio as a identifier between the two codes, must be use.
-    .showToast is a function that will make a pop-up.
 
-    Remove any lines of code that has Android. if testing without an android emulator, and uncomment line 213 to line 226 if testing on browser.
-    */
     function saveNotes(){
       writeDocument(sessionId, getSessionName(), paths, undone, timeStamp, getTime());
     }
+
 /*========================================================================*/
   window.onload = function(){
       checkWindowSetup();
@@ -220,8 +217,8 @@
           $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "\t" + localGet(id).time + "</a><br>");
         }
       } else {
+        $("#home").show();
         $("#editor").show();
-
         toggleHistory();
         CANVAS_HEIGHT = window.innerHeight - 80;
         CANVAS_WIDTH = window.innerWidth;
@@ -283,10 +280,12 @@
 </script>
 </head>
 <body>
-	<div id="spacer" style="height: 100px;">SAVE IT v.2.3</div>
-  
+  <ul>
+    <li><b>Save It</b></li>
+    <li><a onclick="goBack()">Home</a></li>
+    <li><a onclick="newNote()">New note</a></li>
+  </ul>
   <div id="menu" style="display: none;">
-    <button onclick="newNote()">New note</button>  
     <div id="notesList"></div>
   </div>
   
