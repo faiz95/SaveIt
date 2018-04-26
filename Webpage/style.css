@@ -1,4 +1,12 @@
 button {
 	height: 50px;
-	width: 100px;
+	width: 20%;
+	float:left;
+	margin-bottom:10px;
+}
+
+.toolbar {
+	width:100%;
+	background-color:red;
+	padding:10px;
 }

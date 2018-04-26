@@ -16,7 +16,6 @@
   }
 
   function localSet(key, val){
-
     localStorage.setItem(key, JSON.stringify(val));
   }
 
@@ -31,11 +30,13 @@
     // Array#includes seems to be compatible with mobile device browsers
   }
 
-  function writeDocument(id, name, paths, undone){
+  function writeDocument(id, name, paths, undone, timeStamp, time){
     var obj = {
       name: name,
       paths: paths,
-      undone: undone
+      undone: undone,
+      timeStamp: timeStamp,
+      time: time
     };
 
     localSet(id, obj);
@@ -50,8 +51,16 @@
   function newNote(){
     var id = Math.floor(Math.random()*1000000000).toString();
     addToManifest(id);
-    writeDocument(id, 'New Note', [], []);
+    writeDocument(id, 'New Note', [], [], [], getTime());
     window.location.href = window.location.origin + "/?" + id;
+  }
+
+  function getTime(){
+    var currentTime = new Date();
+    var hour = 1 + currentTime.getHours();
+    var time = currentTime.toLocaleDateString() + "\t" + currentTime.toLocaleTimeString();
+    console.log(time);
+    return time;
   }
 
 </script>
@@ -61,6 +70,7 @@
 	var paths = [];
   var ctx;
   var undone = [];
+  var timeStamp = [];
   var THUMBNAIL_HEIGHT_RATIO = 200/500;
   var THUMBNAIL_WIDTH_RATIO = 400/1500;
   var SCALE = 0.25;
@@ -71,6 +81,7 @@
   var sessionId = '';
   var PATH_TIME_MARGIN = 1000;
   var inStroke = false;
+
 /*========================================================================*/
     function updateWritingProgress(saveStatus){
       	var color, message;
@@ -111,9 +122,9 @@
       		oy = path.pts[i][1];
       		if(Math.abs(lastX - ox) > NEW_PATH_MARGIN * THUMBNAIL_WIDTH_RATIO || Math.abs(lastY - oy) > NEW_PATH_MARGIN * THUMBNAIL_HEIGHT_RATIO){
               	// context.moveTo(ox,oy);
-            }
-            lastX = ox;
-            lastY = oy;
+          }
+          lastX = ox;
+          lastY = oy;
       		context.lineTo(ox, oy);
       		context.stroke();
           context.moveTo(ox,oy);
@@ -195,22 +206,7 @@
     Remove any lines of code that has Android. if testing without an android emulator, and uncomment line 213 to line 226 if testing on browser.
     */
     function saveNotes(){
-      writeDocument(sessionId, getSessionName(), paths, undone);
-      /*
-      var pathCheck = "";
-      
-      for (var i = 0; i < paths.length; i++)
-      {
-        for (var j = 0; j < paths[i].pts.length; j++)
-        {
-          pathCheck += paths[i].pts[j][0];
-          pathCheck += " ";
-          pathCheck += paths[i].pts[j][1];
-          pathCheck += " ";
-        }
-        pathCheck += "\t";
-      }
-      $("#saveChecker").html(pathCheck);*/
+      writeDocument(sessionId, getSessionName(), paths, undone, timeStamp, getTime());
     }
 /*========================================================================*/
   window.onload = function(){
@@ -221,72 +217,73 @@
         var docsList = localGet("DOCUMENTS_MANIFEST");
         for(var i = 0; i < docsList.length; i++){
           var id = docsList[i];
-          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "</a><br>");
+          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "\t" + localGet(id).time + "</a><br>");
         }
       } else {
         $("#editor").show();
+
         toggleHistory();
         CANVAS_HEIGHT = window.innerHeight - 80;
         CANVAS_WIDTH = window.innerWidth;
         var inPath = false;
         var lastTouch;
         ctx = Sketch.create({
-            autoclear: false,
-            draw: function() {
-              this.lineCap = 'round';
-                this.lineJoin = 'round';
-                this.fillStyle = this.strokeStyle = "BLACK";
-                this.lineWidth = 10;
-                touch = this.touches[0];
-                if(typeof touch === 'undefined'){
-                  if(inPath && inStroke){
-                    paths[paths.length-1].pts.push(false);
-                  }
-                  inStroke = false;
-                  
-                  if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
-                    inPath = false;
-                    ctx.closePath();
-                    updateWritingProgress(true);
-                  } else {
-                      if(inPath)
-                      updateWritingProgress(false);
-                  }
-                  return;
-                }
-                lastTouch = Date.now();
-                inStroke = true;
-                if(!writingMode){
-                    return;
-                }
-                if(!inPath || paths.length == 0){
-                    ctx.beginPath();
-                    inPath = true;
-                    paths.push({pts:[]})
-                }
-                 
-                updateWritingProgress(false);
-                
-                var ox = touch.ox;
-                var oy = touch.oy;
-                this.moveTo( ox, oy );
-                this.lineTo( touch.x, touch.y );
-                paths[paths.length - 1].pts.push([touch.x, touch.y])
-                this.stroke();
+        autoclear: false,
+        draw: function() {
+          this.lineCap = 'round';
+          this.lineJoin = 'round';
+          this.fillStyle = this.strokeStyle = "BLACK";
+          this.lineWidth = 10;
+          touch = this.touches[0];
+          if(typeof touch === 'undefined'){
+            if(inPath && inStroke){
+              paths[paths.length-1].pts.push(false);
             }
-        });
-        paths = localGet(sessionId).paths;
-        for(var i = 0; i < paths.length; i++){
-          draw(ctx, paths[i]);
+            inStroke = false;
+            
+            if(Date.now() - lastTouch > PATH_TIME_MARGIN && inPath){
+              inPath = false;
+              ctx.closePath();
+              updateWritingProgress(true);
+            } else {
+                if(inPath)
+                updateWritingProgress(false);
+            }
+            return;
+          }
+          lastTouch = Date.now();
+          inStroke = true;
+          if(!writingMode){
+              return;
+          }
+          if(!inPath || paths.length == 0){
+              ctx.beginPath();
+              inPath = true;
+              paths.push({pts:[]})
+          }
+           
+          updateWritingProgress(false);
+          
+          var ox = touch.ox;
+          var oy = touch.oy;
+          this.moveTo( ox, oy );
+          this.lineTo( touch.x, touch.y );
+          paths[paths.length - 1].pts.push([touch.x, touch.y])
+          this.stroke();
         }
-        $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
-        $('canvas').first().css('border-style', 'dashed');
+      });
+      paths = localGet(sessionId).paths;
+      for(var i = 0; i < paths.length; i++){
+        draw(ctx, paths[i]);
+      }
+      $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
+      $('canvas').first().css('border-style', 'dashed');
     }
   };
 </script>
 </head>
 <body>
-	<div id="spacer" style="height: 100px;">SAVE IT v.2.1325</div>
+	<div id="spacer" style="height: 100px;">SAVE IT v.2.3</div>
   
   <div id="menu" style="display: none;">
     <button onclick="newNote()">New note</button>  
@@ -307,7 +304,6 @@
     </div>
     <div>
       <button onclick="saveNotes()">SaveNotes</button>
-      <div id="saveChecker" style="height: 100px;">Testing</div>
     </div>
     <div id="undone" style="position:absolute"></div>
   </div>
