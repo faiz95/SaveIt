@@ -35,7 +35,8 @@
     var obj = {
       name: name,
       paths: paths,
-      undone: undone
+      undone: undone,
+      time: (new Date()).toLocaleString()
     };
 
     localSet(id, obj);
@@ -89,7 +90,7 @@
       	$("#undone").toggle();
     }
 /*========================================================================*/
-  	function draw(context, path, color='black', lineWidth=10){
+  	function draw(context, path, color='black', lineWidth=5){
       console.log("drawing path:");
       console.log(path);
       context.strokeStyle = color;
@@ -144,8 +145,15 @@
   	function addToUndone(path){
     	if(typeof path === 'undefined')
         return;
+      var firstEl = false;
+      var i = 0;
+      while(!firstEl){
+        firstEl = path.pts[i];
+        i++;
+      }
+
       undone.push(transformSize(path));
-    	$("#undone").append("<div style='border-style: solid'><canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
+    	$("#undone").append("<div style='border-style: solid'>" + firstEl[2] + "<canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
     	draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
   	}
 /*========================================================================*/
@@ -221,7 +229,7 @@
         var docsList = localGet("DOCUMENTS_MANIFEST");
         for(var i = 0; i < docsList.length; i++){
           var id = docsList[i];
-          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "</a><br>");
+          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "<br>Last edited: " + localGet(id).time +  "</a><br>");
         }
       } else {
         $("#editor").show();
@@ -236,7 +244,7 @@
               this.lineCap = 'round';
                 this.lineJoin = 'round';
                 this.fillStyle = this.strokeStyle = "BLACK";
-                this.lineWidth = 10;
+                this.lineWidth = 5;
                 touch = this.touches[0];
                 if(typeof touch === 'undefined'){
                   if(inPath && inStroke){
@@ -271,7 +279,7 @@
                 var oy = touch.oy;
                 this.moveTo( ox, oy );
                 this.lineTo( touch.x, touch.y );
-                paths[paths.length - 1].pts.push([touch.x, touch.y])
+                paths[paths.length - 1].pts.push([touch.x, touch.y, (new Date()).toLocaleString()])
                 this.stroke();
             }
         });
@@ -306,10 +314,10 @@
     	<button onclick="toggleHistory()">Toggle History</button>
     </div>
     <div>
-      <button onclick="saveNotes()">SaveNotes</button>
-      <div id="saveChecker" style="height: 100px;">Testing</div>
+      <button onclick="saveNotes()">Save</button>
+      <div id="saveChecker" style="height: 10px;"></div>
     </div>
-    <div id="undone" style="position:absolute"></div>
+    <div id="undone" style="position:absolute; background-color: white; width:100%; height:800px;"></div>
   </div>
 </body>
 </html>
