@@ -145,7 +145,7 @@
     	return pathChanged;
   	}
 /*========================================================================*/
-  	function addToUndone(path){
+  	function addToUndone(path, keepsize=false){
     	if(typeof path === 'undefined')
         return;
       var firstEl = false;
@@ -154,7 +154,10 @@
         firstEl = path.pts[i];
         i++;
       }
-      undone.push(transformSize(path));
+      if(keepsize)
+        undone.push(path);
+      else
+        undone.push(transformSize(path));
     	$("#undone").append("<div style='border-style: solid'>" + firstEl[2] + "<canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
     	draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
   	}
@@ -269,6 +272,10 @@
       paths = localGet(sessionId).paths;
       for(var i = 0; i < paths.length; i++){
         draw(ctx, paths[i]);
+      }
+      undone = localGet(sessionId).undone;
+      for(var i = 0; i < undone.length; i++){
+        addToUndone(paths[i], true);
       }
       $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
       $('canvas').first().css('border-style', 'dashed');
