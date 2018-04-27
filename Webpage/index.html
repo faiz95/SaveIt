@@ -199,7 +199,7 @@
     }
 
     function saveNotes(){
-      writeDocument(sessionId, getSessionName(), paths, undone, timeStamp, getTime());
+      writeDocument(sessionId, getSessionName(), paths, undone);
     }
 
 /*========================================================================*/
@@ -211,7 +211,7 @@
         var docsList = localGet("DOCUMENTS_MANIFEST");
         for(var i = 0; i < docsList.length; i++){
           var id = docsList[i];
-          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "\t" + localGet(id).time + "</a><br>");
+          $("#menu").append("<a href='/?" + id + "'>" + localGet(id).name + "<br>Last edited:" + localGet(id).time + "</a><br>");
         }
       } else {
         $("#home").show();
@@ -227,7 +227,7 @@
           this.lineCap = 'round';
           this.lineJoin = 'round';
           this.fillStyle = this.strokeStyle = "BLACK";
-          this.lineWidth = 10;
+          this.lineWidth = 5;
           touch = this.touches[0];
           if(typeof touch === 'undefined'){
             if(inPath && inStroke){
@@ -262,7 +262,7 @@
           var oy = touch.oy;
           this.moveTo( ox, oy );
           this.lineTo( touch.x, touch.y );
-          paths[paths.length - 1].pts.push([touch.x, touch.y])
+          paths[paths.length - 1].pts.push([touch.x, touch.y, (new Date()).toLocaleString()])
           this.stroke();
         }
       });
