@@ -277,8 +277,8 @@
       for(var i = 0; i < _undone.length; i++){
         addToUndone(_undone[i], true);
       }
-      $('canvas').first().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
-      $('canvas').first().css('border-style', 'dashed');
+      $('canvas').last().height(CANVAS_HEIGHT).width(CANVAS_WIDTH);
+      $('canvas').last().css('border-style', 'dashed');
     }
   };
 </script>
