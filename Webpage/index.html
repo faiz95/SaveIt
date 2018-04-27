@@ -27,16 +27,14 @@
   function documentExists(id){
     var docsList = localGet("DOCUMENTS_MANIFEST");
     return docsList.includes(id);
-    // Array#includes seems to be compatible with mobile device browsers
   }
 
-  function writeDocument(id, name, paths, undone, timeStamp, time){
+  function writeDocument(id, name, paths, undone){
     var obj = {
       name: name,
       paths: paths,
       undone: undone,
-      timeStamp: timeStamp,
-      time: time
+      time: (new Date()).toLocaleString()
     };
 
     localSet(id, obj);
@@ -51,14 +49,8 @@
   function newNote(){
     var id = Math.floor(Math.random()*1000000000).toString();
     addToManifest(id);
-    writeDocument(id, 'New Note', [], [], [], getTime());
+    writeDocument(id, 'New Note', [], []);
     window.location.href = window.location.origin + "/?" + id;
-  }
-
-  function getTime(){
-    var currentTime = new Date();
-    var time = currentTime.toLocaleDateString() + "\t" + currentTime.toLocaleTimeString();
-    return time;
   }
 
   function goBack(){
@@ -72,7 +64,6 @@
 	var paths = [];
   var ctx;
   var undone = [];
-  var timeStamp = [];
   var THUMBNAIL_HEIGHT_RATIO = 200/500;
   var THUMBNAIL_WIDTH_RATIO = 400/1500;
   var SCALE = 0.25;
@@ -102,7 +93,7 @@
       	$("#undone").toggle();
     }
 /*========================================================================*/
-  	function draw(context, path, color='black', lineWidth=10){
+  	function draw(context, path, color='black', lineWidth=5){
       console.log("drawing path:");
       console.log(path);
       context.strokeStyle = color;
@@ -157,8 +148,14 @@
   	function addToUndone(path){
     	if(typeof path === 'undefined')
         return;
+      var firstEl = false;
+      var i = 0;
+      while(!firstEl){
+        firstEl = path.pts[i];
+        i++;
+      }
       undone.push(transformSize(path));
-    	$("#undone").append("<div style='border-style: solid'><canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
+    	$("#undone").append("<div style='border-style: solid'>" + firstEl[2] + "<canvas height='" + CANVAS_HEIGHT * SCALE + "' width='" + CANVAS_WIDTH * SCALE + "'></canvas></div>");
     	draw($("#undone").children().last().children().first()[0].getContext('2d'), path,  'red', 5);
   	}
 /*========================================================================*/
@@ -307,7 +304,8 @@
     <div>
       <button onclick="saveNotes()">SaveNotes</button>
     </div>
-    <div id="undone" style="position:absolute"></div>
+     <div id="spacer2" style="height: 50px;"></div>
+    <div id="undone" style="position:absolute; background-color: white; width:100%; height:800px;"></div>
   </div>
 </body>
 </html>
